@@ -1,0 +1,6 @@
+
+
+django>=4.1
+djangorestframework>=3.14
+django-cors-headers>=3.13
+PyYAML>=6.0
