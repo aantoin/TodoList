@@ -59,4 +59,4 @@ jobs:
     - name: npm test
       run: |
         cd frontend/TodoList
-        npm test
+        npm run test:unit
