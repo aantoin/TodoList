@@ -30,7 +30,7 @@ jobs:
       env:
         DJANGO_ENVIRONMENT: TEST
       run: |
-        cd backend
+        cd backend/TodoList
         python manage.py test
   test_frontend:
 
@@ -47,16 +47,16 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: './frontend/package-lock.json'
+        cache-dependency-path: './frontend/TodoList/package-lock.json'
     - name: npm clean install
       run: |
-        cd frontend
+        cd frontend/TodoList
         npm ci
     - name: npm run build
       run: |
-        cd frontend
+        cd frontend/TodoList
         npm run build
     - name: npm test
       run: |
-        cd frontend
+        cd frontend/TodoList
         npm test
