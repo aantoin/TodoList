@@ -4,3 +4,5 @@ django>=4.1
 djangorestframework>=3.14
 django-cors-headers>=3.13
 PyYAML>=6.0
+drf-nested-routers>=0.93
+django-rest-knox>=4.2

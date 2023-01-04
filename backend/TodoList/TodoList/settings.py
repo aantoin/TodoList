@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q49o&jwj%t1b+$oyvq#@edb#8wz4#(p8zty%z9fl(_r5#33ztu'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ENV = os.getenv('DJANGO_ENVIRONMENT')
+DEBUG = ENV == 'DEV' or ENV is None
+PROD = ENV == 'PROD'
+TEST = ENV == 'TEST'
+if not (DEBUG | PROD | TEST):
+  raise ValueError(
+      f'Invalid environment variable value for DJANGO_ENVIRONMENT : {ENV}')
+
+SECRET_KEY = 'django-insecure-q49o&jwj%t1b+$oyvq#@edb#8wz4#(p8zty%z9fl(_r5#33ztu' if DEBUG or TEST else os.getenv(
+    'DJANGO_SECRET_KEY')
 
 ALLOWED_HOSTS = []
 
@@ -31,22 +40,32 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    (x if isinstance(x, str) else x[1]) for x in [
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'rest_framework',
+        'knox',
+        (DEBUG, 'corsheaders'),
+        'users',
+        'todo',
+    ] if (isinstance(x, str) or x[0])
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    (x if isinstance(x, str) else x[1]) for x in [
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        (DEBUG, 'corsheaders.middleware.CorsMiddleware'),
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ] if (isinstance(x, str) or x[0])
 ]
 
 ROOT_URLCONF = 'TodoList.urls'
@@ -120,4 +139,21 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
+AUTH_USER_MODEL = 'users.User'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    "http://localhost:[0-9]*",
+    "http://127.0.0.1:[0-9]*",
+] if DEBUG else []
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+}
+
+REST_KNOX = {
+    'TOKEN_TTL': timedelta(hours=10),
+    'TOKEN_LIMIT_PER_USER': None,
+    'AUTO_REFRESH': True,
+    'MIN_REFRESH_INTERVAL': 60
+}
