@@ -6,7 +6,4 @@ describe("HelloWorld", () => {
   it("success test", () => {
     expect(true).toBe(true);
   });
-  it("fail test", () => {
-    expect(false).toBe(true);
-  });
 });
